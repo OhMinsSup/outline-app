@@ -1,0 +1,72 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
+
+}
+
+model User {
+  id        String  @id @default(cuid())
+  email     String?
+  username  String?
+  avatarUrl String?
+  name      String
+
+  isAdmin  Boolean @default(false)
+  isViewer Boolean @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  lastActiveAt          DateTime?
+  lastActiveIp          String?
+  lastSignedInAt        DateTime?
+  lastSignedInIp        String?
+  lastSigninEmailSentAt DateTime?
+  suspendedAt           DateTime?
+
+  language String @default("ko")
+
+  // Relations
+  authentications UserAuthentication[]
+}
+
+model UserAuthentication {
+  id String @id @default(cuid())
+
+  accessToken  String
+  refreshToken String
+  providerId   String
+
+  // comma separated list of scopes (e.g. "read:users, write:users")
+  scopes String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // UserAuthentication belongsTo User
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  // UserAuthentication belongs to a User
+  authenticationProvider   AuthenticationProvider? @relation(fields: [authenticationProviderId], references: [id])
+  authenticationProviderId String?
+}
+
+model AuthenticationProvider {
+  id String @id @default(cuid())
+
+  name    String
+  enabled Boolean @default(true)
+
+  providerId String
+
+  createdAt DateTime @default(now())
+
+  userAuthentications UserAuthentication[]
+}
